@@ -160,6 +160,27 @@ def analyze_chat_data(df):
         print(f"An error occurred during analysis: {e}")
         return f"An error occurred: {e}", pd.DataFrame(), None
 
+
+def fetch_and_analyze(name_pattern):
+    service = authenticate()
+    file_info = search_latest_file(service, name_pattern)
+    if file_info:
+        file_name = download_file(service, file_info['id'], file_info['name'])
+        
+        # Open and read the entire content of the file
+        with open(file_name, 'r', encoding='utf-8') as file:
+            text_content = file.read()
+        
+        df = extract_data(file_name)
+        # Call analyze_chat_data and unpack the returned values
+        summary, dataframe, plot = analyze_chat_data(df)
+        
+        # Return all necessary information to the interface
+        return file_name, summary, plot, text_content
+    else:
+        return "No file found", "No data to analyze", None, "No file found"
+
+
 def setup_interface():
     with gr.Blocks() as app:
         with gr.Row():
